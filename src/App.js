@@ -25,9 +25,23 @@ function convertToInfixArray(expression) {
   return result;
 }
 
+const getSeperatedEl = (expression) => {
+  let numbers = [];
+  let operator;
+
+  for (let i = 0; i < expression.length; i++) {
+    if (!isNaN(parseInt(expression[i]))){
+      numbers.push(parseInt(expression[i]));
+    } else {
+      operator = expression[i];
+    }
+  }
+  return [numbers, operator];
+}
 
 
 
+let clearScreenOnNextInput = false;
 const App = () => {
   const [value, setValue] = useState("");
   const btnValues = [
@@ -45,45 +59,44 @@ const App = () => {
     try {
       const infixArray = convertToInfixArray(value);
 
-    //   for example: 2+3 , infixArray = [2, '+', 3]
-    //   for example: 3*4 , infixArray = [3, '*', 4]
 
-      let numbers = [];
-      let operator;
-      for (let i = 0; i < infixArray.length; i++) {
-        if (!isNaN(parseInt(infixArray[i]))){
-          numbers.push(parseInt(infixArray[i]));
-        } else {
-          operator = infixArray[i];
-        }
-      }
+      const [numbers, operator] = getSeperatedEl(infixArray);
       const num1 = numbers[0];
       const num2 = numbers[1];
+
 
       if (num1 === undefined || num2 === undefined) {
         return;
       }
 
+      let result;
       switch (operator) {
         case '+':
-          setValue((num1 + num2).toString());
+          result = (num1 + num2).toString();
           break;
         case '-':
-          setValue((num1 - num2).toString());
+          result = (num1 - num2).toString();
           break;
         case 'X':
-          setValue((num1 * num2).toString());
+          result = (num1 * num2).toString();
           break;
         case '/':
-          setValue((num1 / num2).toString());
+          if(num2 === 0) {
+            result = "Division By Zero not allowed";
+            clearScreenOnNextInput = true;
+          } else {
+            result = (num1 / num2).toString();
+          }
           break;
         default:
-          setValue('Error');
+          clearScreenOnNextInput = true;
+          result ='Operator not supported';
           break;
       }
-
+      setValue(result);
     } catch (e) {
       setValue('Error');
+      clearScreenOnNextInput = true;
     }
   }
 
@@ -99,8 +112,11 @@ const App = () => {
                       className={btn === "=" ? "equals" : ""}
                       value={btn}
                       onClick={() => {
+                        if(clearScreenOnNextInput) {
+                          clearScreenOnNextInput = false;
+                        }
                         if (btn === "=") {
-                          if(value && parseInt(value) !== 0) {
+                          if(value) {
                             handleEqual();
                           }
                         } else if (btn === "C"){
